@@ -1,0 +1,31 @@
+.wrapper {
+    overflow: hidden;
+  }
+  
+  .sliding-background {
+    background: url("https://i.pinimg.com/originals/14/d1/3a/14d13afc1175d2cb71802455ae61ac57.jpg") repeat-x;
+    height: 600px;
+    width: 5067px;
+    position: relative;
+    animation: slide 60s linear infinite;
+  }
+  
+  @keyframes slide{
+    0%{
+      transform: translate3d(0, 0, 0);
+    }
+    100%{
+      transform: translate3d(-1692px, 0, 0);
+    }
+  }
+
+h2{
+    display:block;
+    padding: 7px;
+    color:white;
+    background-color: black;
+    text-align: center;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    position: static;
+}
+
