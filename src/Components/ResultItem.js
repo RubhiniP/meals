@@ -9,12 +9,11 @@ class ResultItem extends Component {
 
     return (
       <Card sx={{
-        backgroundColor: '#f0f0f0',
+        backgroundColor: '',
         border: '1px solid grey',
         borderRadius: '10px',
         width: 300, 
-        margin: '10px', 
-        boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)', 
+        margin: '10px'         
       }}>
         <img
           src={`${item.strMealThumb}/preview`}
@@ -26,16 +25,16 @@ class ResultItem extends Component {
           }}
         />
         <CardContent sx={{ padding: '16px' }} className="card-content">
-          <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '8px' }}>
-            {item.idMeal} ~ {item.strMeal}
+          <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '4px' }}>
+            {item.idMeal} - {item.strMeal.length > 15 ? (<>{item.strMeal.slice(0,15)}...</>) : item.strMeal}
           </h3>
           {item.strArea ? (
-            <p style={{ fontSize: '0.9rem', color: 'grey', marginBottom: '8px' }}>
-              {item.strArea} ~ {item.strCategory}
+            <p style={{ fontSize: '16px', color: 'grey', marginBottom: '4px' }}>
+              {item.strArea} - {item.strCategory}
             </p>
           ) : (
-            <p style={{ fontSize: '0.9rem', color: 'grey', marginBottom: '8px' }}>
-              {meals.selectedCategory} {meals.selectedArea}
+            <p style={{ fontSize: '16px', color: 'grey', marginBottom: '4px' }}>
+              {meals.selectedCategory && meals.selectedCategory} {meals.selectedArea && meals.selectedArea}
             </p>
           )}
           <Link
@@ -43,13 +42,13 @@ class ResultItem extends Component {
             style={{
               display: 'block',
               textAlign: 'center',
-              backgroundColor: 'blue',
+              backgroundColor: 'rgba(59, 57, 57, 1)',
               color: 'white',
               padding: '8px 16px',
               borderRadius: '4px',
               textDecoration: 'none',
               fontWeight: 'bold',
-              fontSize: '0.9rem',
+              fontSize: '16px',
             }}
           >
             View Details

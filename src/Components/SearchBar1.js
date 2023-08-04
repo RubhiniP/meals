@@ -1,8 +1,14 @@
-import React, { Component } from "react";
-import { Menu, MenuItem, TextField, Button } from '@mui/material';
+import React, { Component, Suspense } from "react";
+import { Menu, MenuItem, TextField, Button, IconButton } from '@mui/material';
 import axios from "axios";
-import ResultItem from "./ResultItem";
-import Recommendation from "./Recommendation";
+// import ResultItem from "./ResultItem";
+// import HomePage from "./Homepage";
+import { BiSolidRightArrowCircle, BiSolidLeftArrowCircle } from 'react-icons/bi';
+import SearchIcon from '@mui/icons-material/Search';
+import ErrorBoundary from "./ErrorBoundary";
+
+const HomePage = React.lazy(() => import("./Homepage"));
+const ResultItem = React.lazy(() => import("./ResultItem"));
 
 class SearchBar1 extends Component{
 
@@ -10,6 +16,7 @@ class SearchBar1 extends Component{
         super(props);
         this.state = {
             searchQuery: '',
+            firstSearchResults: [],
             searchResults: [],
             errorMessage: '',
 
@@ -21,23 +28,35 @@ class SearchBar1 extends Component{
             showAreaList: false,
             selectedArea: null,
 
-            showSearchMenu: false
+            searched: false,
+
+            
+
+            // showSearchMenu: false
         }
+        this.resultContainerRef = React.createRef();
         this.categoryButtonRef = React.createRef();
         this.areaButtonRef = React.createRef();
-        this.searchButtonRef = React.createRef();
+        // this.searchButtonRef = React.createRef();
     }
 
-    openSearchMenu = (event) => {
-        this.setState({
-          showSearchMenu: true,
-          searchAnchorEl: event.currentTarget,
-        });
+    scrollContainer = (scrollOffset) => {
+        const container = this.resultContainerRef.current;
+        if (container) {
+          container.scrollLeft += scrollOffset;
+        }
       };
+
+    // openSearchMenu = (event) => {
+    //     this.setState({
+    //       showSearchMenu: true,
+    //       searchAnchorEl: event.currentTarget,
+    //     });
+    // };
     
-      closeSearchMenu = () => {
-        this.setState({ showSearchMenu: false });
-      };
+    // closeSearchMenu = () => {
+    //     this.setState({ showSearchMenu: false });
+    // };
 
     changeHandler = (e) => {
         this.setState({
@@ -49,49 +68,52 @@ class SearchBar1 extends Component{
         e.preventDefault();
         const name = this.state.searchQuery.trim();
         if (!isNaN(name)) {
-        this.setState({ searchResults: [], errorMessage: 'Please enter a valid name' });
+        this.setState({ searchResults: [], firstSearchResults: [], errorMessage: 'Please enter a valid name' });
         return;
         }
         axios.get(`https://www.themealdb.com/api/json/v1/1/search.php?s=${this.state.searchQuery}`)
         .then(result => {
             console.log(result);
-            this.setState({searchResults: result.data.meals, errorMessage: ''});
+            this.setState({searchResults: result.data.meals,
+                           firstSearchResults: result.data.meals,
+                           errorMessage: '',
+                           searched: true});
         })
         .catch(error => console.log("Error fetching data", error))
     }
 
-    searchByLetter = (e) => {
-        e.preventDefault();
-        const name = this.state.searchQuery.trim();
-        if (!isNaN(name)) {
-        this.setState({ searchResults: [], errorMessage: 'Please enter a valid character' });
-        return;
-        }
-        const letter = this.state.searchQuery.charAt(0).toLowerCase()
-        axios.get(`https://www.themealdb.com/api/json/v1/1/search.php?f=${letter}`)
-        .then(result => this.setState({searchResults: result.data.meals, errorMessage: ''}))
-        .catch(error => console.log("Error fetching data", error))
-    }
+    // searchByLetter = (e) => {
+    //     e.preventDefault();
+    //     const name = this.state.searchQuery.trim();
+    //     if (!isNaN(name)) {
+    //     this.setState({ searchResults: [], errorMessage: 'Please enter a valid character' });
+    //     return;
+    //     }
+    //     const letter = this.state.searchQuery.charAt(0).toLowerCase()
+    //     axios.get(`https://www.themealdb.com/api/json/v1/1/search.php?f=${letter}`)
+    //     .then(result => this.setState({searchResults: result.data.meals, errorMessage: ''}))
+    //     .catch(error => console.log("Error fetching data", error))
+    // }
 
-    searchByID = (e) => {
-        e.preventDefault();
-        const id = this.state.searchQuery.trim();
-        if (!id || isNaN(id)) {
-        this.setState({ searchResults: [], errorMessage: 'Please enter a valid ID' });
-        return;
-        }
-        axios.get(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${this.state.searchQuery}`)
-        .then(result => this.setState({searchResults: result.data.meals, errorMessage: ''}))
-        .catch(error => console.log("Error fetching data", error))
-    }
+    // searchByID = (e) => {
+    //     e.preventDefault();
+    //     const id = this.state.searchQuery.trim();
+    //     if (!id || isNaN(id)) {
+    //     this.setState({ searchResults: [], errorMessage: 'Please enter a valid ID' });
+    //     return;
+    //     }
+    //     axios.get(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${this.state.searchQuery}`)
+    //     .then(result => this.setState({searchResults: result.data.meals, errorMessage: ''}))
+    //     .catch(error => console.log("Error fetching data", error))
+    // }
 
-    sortByName = (e) => {
+    sortByName = () => {
         this.setState({
             searchResults: this.state.searchResults.sort((a, b) => (a.strMeal < b.strMeal) ? -1 : (a.strMeal > b.strMeal) ? 1 : 0 )
         })
     }
 
-    sortByID = (e) => {
+    sortByID = () => {
         this.setState({
             searchResults: this.state.searchResults.sort((a, b) => (a.idMeal < b.idMeal) ? -1 : (a.idMeal > b.idMeal) ? 1 : 0 )
         })
@@ -103,19 +125,23 @@ class SearchBar1 extends Component{
         //fetching all categories
         axios.get("https://www.themealdb.com/api/json/v1/1/list.php?c=list")
         .then(result => {
-            console.log(result.data.meals);
+            // console.log(result.data.meals);
             this.setState({
                 categories: result.data.meals.map(meal => meal.strCategory)
         })
         // console.log(this.state.categories);
     })
     this.fetchAreas();
+    }
 
+    filterByCategory = () => {
+        this.toggleCategoryList();
     }
 
     toggleCategoryList = () => {
         this.setState((prevState) => ({
-            showCategoryList: !prevState.showCategoryList
+            showCategoryList: !prevState.showCategoryList,
+            selectedArea: null
         }));
     }
 
@@ -124,25 +150,26 @@ class SearchBar1 extends Component{
     }
 
     fetchMealsByCategory = () => {
+        const { firstSearchResults } = this.state;
+        firstSearchResults?.length ?
+            this.setState({
+                searchResults: firstSearchResults.filter(result => result.strCategory.includes(this.state.selectedCategory))
+            }) : 
         axios.get(`https://www.themealdb.com/api/json/v1/1/filter.php?c=${this.state.selectedCategory}`)
         .then(result => this.setState({
-            searchResults: result.data.meals
+            searchResults: result.data.meals,
+            errorMessage: ''
         }))
         .catch(error => console.log("Error fetching selected category", error));
-    }
-
-
-    filterByCategory = (e) => {
-        this.toggleCategoryList();
-    }
+    }    
 
     //area section
 
-    fetchAreas(){
-        //fetching all categories
+    fetchAreas = () => {
+        //fetching all areas
         axios.get("https://www.themealdb.com/api/json/v1/1/list.php?a=list")
         .then(result => {
-            console.log(result.data.meals);
+            // console.log(result.data.meals);
             this.setState({
                 areas: result.data.meals.map(meal => meal.strArea)
         })
@@ -150,9 +177,14 @@ class SearchBar1 extends Component{
     })
     }
 
+    filterByArea = () => {
+        this.toggleAreaList();
+    }
+
     toggleAreaList = () => {
         this.setState((prevState) => ({
-            showAreaList: !prevState.showAreaList
+            showAreaList: !prevState.showAreaList,
+            selectedCategory: null
         }));
     }
 
@@ -161,75 +193,80 @@ class SearchBar1 extends Component{
     }
 
     fetchMealsByArea = () => {
+        const { firstSearchResults } = this.state;
+        firstSearchResults?.length ?
+            this.setState({
+                searchResults: firstSearchResults.filter(result => result.strArea.includes(this.state.selectedArea))
+            }) : 
         axios.get(`https://www.themealdb.com/api/json/v1/1/filter.php?a=${this.state.selectedArea}`)
         .then(result => this.setState({
-            searchResults: result.data.meals
+            searchResults: result.data.meals,
+            errorMessage: ''
         }))
         .catch(error => console.log("Error fetching selected category", error));
     }
 
 
-    filterByArea = (e) => {
-        this.toggleAreaList();
-    }
+    inputStyle = {
+        color: 'white',
+        width: '500px',
+        backgroundColor: 'rgba(109, 109, 109, 1)',
+        cursor: 'pointer'
+    };
 
     render(){
-        const { searchQuery, searchResults, errorMessage, showCategoryList, categories, showAreaList, areas, showSearchMenu } = this.state;
+        const { searchQuery, searchResults, errorMessage, showCategoryList, categories, showAreaList, areas } = this.state;
         return(
-            <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-                <br />
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px' }}>
-          <TextField
-            label="Search for a meal"
+            <div style={{ padding: "20px", fontFamily: "Arial, sans-serif", backgroundColor: '#121212' }}>
+            <br />
+
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px' }}>
+          
+            <TextField
             variant="outlined"
             value={searchQuery}
             onChange={this.changeHandler}
-            style={{ width: '500px' }}
-          />
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
-          {/* Parent Button - Search */}
-          <Button variant="contained" onClick={this.openSearchMenu} style={{ marginRight: '10px' }} ref={this.searchButtonRef}>
+            inputProps={{style: this.inputStyle}}
+            inputlabelprops={{style: this.inputStyle}}
+            />
+            {/* <Button variant="contained" onClick={this.searchByName} style={{ marginLeft:'20px', padding: '16px', backgroundColor: 'rgba(239, 223, 26, 0.8)', color: 'black'}} ref={this.searchButtonRef}>
             Search
-          </Button>
+            </Button>           */}
+            <IconButton onClick={this.searchByName}>
+                <SearchIcon aria-label="search" variant="contained" ref={this.searchButtonRef} style={{padding: '16px', backgroundColor: 'rgba(59, 57, 57, 1)', color: 'white'}}/>
+            </IconButton>
+            </div>
 
-          {/* Dropdown Menu */}
-          <Menu
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <Button variant="contained" onClick={this.filterByCategory} ref={this.categoryButtonRef}  style={{ marginLeft:'20px', backgroundColor: 'rgba(59, 57, 57, 1)'}}>Filter by category</Button>{' '}
+            <Button variant="contained" onClick={this.filterByArea} ref={this.areaButtonRef}  style={{ marginLeft:'20px', backgroundColor: 'rgba(59, 57, 57, 1)'}}>Filter by Area</Button>
+
+            {/* Dropdown Menu */}
+            {/* <Menu
             anchorEl={this.searchButtonRef.current}
             open={showSearchMenu}
             onClose={this.closeSearchMenu}
-          >
+            >
             <MenuItem onClick={this.searchByName}>Search By Name</MenuItem>
             <MenuItem onClick={this.searchByLetter}>Search By First Letter</MenuItem>
             <MenuItem onClick={this.searchByID}>Search By ID</MenuItem>
-          </Menu>
-        </div>
-        <br />
-                
-                {searchResults.length ? (
-                <ul>
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px'}}>
-                    <Button variant="outlined" onClick={this.sortByName}>Sort by Name</Button>{' '}
-                    <Button variant="outlined" onClick={this.sortByID}>Sort by ID</Button>{' '}
-                    <Button variant="outlined" onClick={this.filterByCategory} ref={this.categoryButtonRef}>Filter by category</Button>{' '}
-                    <Button variant="outlined" onClick={this.filterByArea} ref={this.areaButtonRef}>Filter by Area</Button>
-                    </div>
-                
+            </Menu> */}
+            </div>
+            <br />
 
-                {/* category */}
-                {showCategoryList && (
+            {/* category */}
+            {showCategoryList && (
                 <Menu 
-                anchorEI={this.categoryButtonRef.current}
+                anchorEl={this.categoryButtonRef.current}
                 open={showCategoryList}
                 onClose={this.toggleCategoryList}
                 anchorOrigin={{
-                    vertical: 'bottom', // Align the menu below the button
-                    horizontal: 'center', // Center the menu horizontally below the button
+                    vertical: 'bottom',
+                    horizontal: 'center'
                   }}
                   transformOrigin={{
                     vertical: 'top',
-                    horizontal: 'center',
+                    horizontal: 'center'
                   }}>
                     {categories.map(category => (
                         <MenuItem key={category} onClick={() => this.selectCategory(category)}>{category}</MenuItem>
@@ -239,39 +276,67 @@ class SearchBar1 extends Component{
                 {/* area */}
                 {showAreaList && (
                 <Menu 
-                anchorEI={this.areaButtonRef.current}
+                anchorEl={this.areaButtonRef.current}
                 open={showAreaList}
                 onClose={this.toggleAreaList}
                 anchorOrigin={{
-                    vertical: 'bottom', // Align the menu below the button
-                    horizontal: 'center', // Center the menu horizontally below the button
+                    vertical: 'bottom',
+                    horizontal: 'center'
+                  }}
+                  transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'center'
                   }}
                 >
                     {areas.map(area => (
                         <MenuItem key={area} onClick={() => this.selectArea(area)}>{area}</MenuItem>
                     ))}
-                </Menu>)}              
-                </ul>
-                ) : null}
+                </Menu>)} 
 
-                <div style={{
-          display: 'flex',
-          flexWrap: 'nowrap',
-          overflowX: 'auto',
-        }}>
-          {searchResults.map((result) => (
-            <div key={result.idMeal} style={{ flex: '0 0 300px', margin: '10px' }}>
-              <ResultItem item={result} meals={this.state} />
-            </div>
-          ))}
+                {/* {console.log(searchResults)} */}
+                {searchResults?.length ? (
+                
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px'}}>
+                    <Button variant="contained" onClick={this.sortByName} style={{ marginLeft:'20px', backgroundColor: 'rgba(59, 57, 57, 1)'}}>Sort by Name</Button>{' '}
+                    <Button variant="contained" onClick={this.sortByID}  style={{ marginLeft:'20px', backgroundColor: 'rgba(59, 57, 57, 1)'}}>Sort by ID</Button>{' '}
+                    </div>
+                         
+                ) : null}
+                
+                <ErrorBoundary>
+                <Suspense fallback={<div>Loading... Please wait</div>}>
+                <div style={{ display: 'flex', flexWrap: 'nowrap', overflowX: 'auto'}} ref={this.resultContainerRef}>
+                {(searchResults?.length ? (
+                searchResults.map((result) => (
+                    <div key={result.idMeal} style={{ flex: '0 0 300px', margin: '10px' }}>
+                      <ResultItem item={result} meals={this.state} />
+                    </div>
+                  ))
+                ) : this.state.searched && <div>No results found</div>)}
+                </div>
+                </Suspense>
+                </ErrorBoundary>
+                               
+                                
+                {searchResults?.length ? 
+                <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
+                <BiSolidLeftArrowCircle onClick={() => this.scrollContainer(-400)} style={{ marginRight: "20px", backgroundColor: "rgba(59, 57, 57, 1)", fontSize: '50px', borderRadius: '30px', cursor: 'pointer'}} />
+                <BiSolidRightArrowCircle onClick={() => this.scrollContainer(400)} style={{ marginLeft: "20px", backgroundColor: "rgba(59, 57, 57, 1)", fontSize: '50px', borderRadius: '30px', cursor: 'pointer'}} /> 
+                </div> : null}
+
+            {errorMessage && <div>{errorMessage}</div>}
+
+            <ErrorBoundary>
+                <Suspense fallback={<div>Loading... Please wait</div>}>
+                    <HomePage />
+                </Suspense>
+            </ErrorBoundary>
+            
+           
         </div>
-        {errorMessage && <div>{errorMessage}</div>}
-        <Recommendation />
-            </div>
         );
     }
 }
 
 export default SearchBar1;
-
 

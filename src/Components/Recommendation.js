@@ -1,8 +1,12 @@
 import React, { Component } from "react";
 import axios from "axios";
 import { Box } from "@mui/material";
-import ResultItem from "./ResultItem";
-import "./Homepage.css";
+// import ResultItem from "./ResultItem";
+import { BiSolidLeftArrowCircle, BiSolidRightArrowCircle } from 'react-icons/bi';
+import ErrorBoundary from "./ErrorBoundary";
+import Loading from "./Loading";
+
+const ResultItem = React.lazy(() => import("./ResultItem"));
 
 class Recommendation extends Component {
   constructor(props) {
@@ -11,7 +15,16 @@ class Recommendation extends Component {
       meals: [],
       isLoading: true
     };
+    this.resultContainerRef = React.createRef();
+
   }
+
+  scrollContainer = (scrollOffset) => {
+    const container = this.resultContainerRef.current;
+    if (container) {
+      container.scrollLeft += scrollOffset;
+    }
+  };
 
   componentDidMount() {
     this.fetchMenuData();
@@ -35,18 +48,28 @@ class Recommendation extends Component {
     const { meals, isLoading } = this.state;
 
     if (isLoading) {
-      return <div>Loading...</div>;
+      return <div><Loading /></div>
     }
 
     return (
       <div>
+       <ErrorBoundary>
         <div className="menu-list">
-          <Box sx={{ display: "flex", overflowX: "auto" }}>
+          <Box sx={{ display: "flex", overflowX: "auto" }} ref={this.resultContainerRef}>
             {meals.map(meal => (
-                <ResultItem item={meal}/>
+                <div key={meal.idMeal}>
+                  <ResultItem item={meal}/>
+                </div>
             ))}    
           </Box>
         </div>
+       </ErrorBoundary>
+
+        {meals?.length ? 
+          <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
+            <BiSolidLeftArrowCircle onClick={() => this.scrollContainer(-400)} style={{ marginRight: "20px", backgroundColor: "rgba(59, 57, 57, 1)", fontSize: '50px', borderRadius: '30px', cursor: 'pointer'}} />
+            <BiSolidRightArrowCircle onClick={() => this.scrollContainer(400)} style={{ marginLeft: "20px", backgroundColor: "rgba(59, 57, 57, 1)", fontSize: '50px', borderRadius: '30px', cursor: 'pointer'}} /> 
+          </div> : null}
       </div>
     );
   }

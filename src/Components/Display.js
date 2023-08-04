@@ -1,25 +1,20 @@
 import axios from "axios";
 import React, { Component } from "react";
 import { withRouter } from 'react-router-dom';
-import { Container, Typography, Divider, Box, Card, CardMedia, CardContent } from '@mui/material';
+import { Container, Typography, Divider, Box, Card, CardMedia, CardContent, Button } from '@mui/material';
 
 class Display extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            mealDetails: null
+            mealDetails: null,
+            showMore: false
         }
     }
 
     componentDidMount() {
-        // console.log(this.props, "our log")
+        console.log(this.props, "our log")
         this.fetchMealDetailsById();
-        const searchParams = new URLSearchParams(this.props.location.search);
-        const searchResultsJson = searchParams.get('searchResults');
-        if (searchResultsJson) {
-            const searchResults = JSON.parse(searchResultsJson);
-            this.setState({ searchResults });
-        }
     }
 
     fetchMealDetailsById = () => {
@@ -30,8 +25,14 @@ class Display extends Component {
             .catch(error => console.log("Error fetching data", error))
     }
 
+    showHandler = () => {
+        this.setState((prevState) => ({
+            showMore: !prevState.showMore
+        }));
+    }
+
     render() {
-        const { mealDetails } = this.state;
+        const { mealDetails, showMore } = this.state;
         if (!mealDetails) {
             return <div>Loading...</div>
         }
@@ -46,17 +47,18 @@ class Display extends Component {
         }
 
         return (
+            <div style={{ background: "#121212", color: "#ffffff", paddingTop: "20px" }}>
             <Container>
-                <br />
+                <Divider style={{ margin: '15px 0', backgroundColor: '#ffffff'}}/>
                 <Box sx={{ marginTop: '20px' }}>
                     <Typography variant="h6">
-                        {mealDetails.strCategory.toUpperCase()}{' '}
+                        {mealDetails.strCategory.toUpperCase()}
                         {mealDetails.strArea.toUpperCase()}
                     </Typography>
-                    <Typography variant="h4">
+                    <Typography variant="h4" sx={{fontFamily: 'sans-serif', fontStyle:'italic'}}>
                         {mealDetails.strMeal}
                     </Typography>
-                    <Divider sx={{ my: 2 }} />
+                    <Divider sx={{ marginTop: 2, marginBottom: 2 }} />
                     <Card>
                         <CardMedia
                             component="img"
@@ -67,16 +69,24 @@ class Display extends Component {
                         />
                         <CardContent>
                             <Typography variant="body1">
-                                {mealDetails.strInstructions}
+                                {showMore ? mealDetails.strInstructions : `${mealDetails.strInstructions.substring(0,200)}`}
                             </Typography>
-                            <Typography variant="h6" sx={{ mt: 2 }}>
-                                Ingredients:
+                            {
+                            showMore &&
+                            <>
+                            <Typography variant="h6" sx={{ marginTop: 2, marginBottom: 2, fontFamily: 'sans-serif', fontWeight: 'bold', fontStyle: 'italic' }}>
+                            Ingredients:
                             </Typography>
                             <ul>
                                 {ingredientsList.map((ingredient, index) => (
                                     <li key={index}>{ingredient}</li>
+                                    
                                 ))}
                             </ul>
+                            </>
+                            }
+                            <Button onClick={this.showHandler}>{showMore ? "Show Less" : "Show More" }</Button>
+
                         </CardContent>
                     </Card>
                     <Box sx={{
@@ -95,29 +105,16 @@ class Display extends Component {
                             allowFullScreen
                             sx={{
                                 border: 'none', 
-                                borderRadius: '12px', 
-                                boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.3)', 
+                                borderRadius: '12px',  
                                 marginBottom: '20px', 
                             }}
                         />
-                        <Typography
-                            variant="body1"
-                            sx={{
-                            fontFamily: 'cursive',
-                            fontSize: '20px',
-                            fontWeight: 'bold',      
-                            textTransform: 'uppercase', 
-                            textDecoration: 'underline', 
-                            textAlign: 'center',        
-                            marginTop: '10px',          
-                            }}
-                            >
-                            {mealDetails.strMeal}
-                        </Typography><br /><br />
+                        <br /><br />
 
                     </Box>
                 </Box>
             </Container>
+            </div>
         );
     }
 }

@@ -1,7 +1,13 @@
-import React, { Component } from "react";
+import React, { Component, Suspense } from "react";
 import { Container, Typography, Grid, Box, Divider, Paper } from "@mui/material";
-import Recommendation from "./Recommendation";
-import ContactUs from "./Contact";
+// import Recommendation from "./Recommendation";
+// import ContactUs from "./Contact";
+// import SearchBar1 from "./SearchBar1";
+import ErrorBoundary from "./ErrorBoundary";
+
+const SearchBar1 = React.lazy(() => import("./SearchBar1"));
+const Recommendation = React.lazy(() => import("./Recommendation"));
+const ContactUs = React.lazy(() => import("./Contact"));
 
 class About extends Component {
 
@@ -18,6 +24,15 @@ class About extends Component {
       
       componentWillUnmount() {
         clearInterval(this.slideshowInterval);
+      }
+      
+      scrollToSection = () => {
+        if(this.targetRef.current){
+          this.targetRef.current.scrollIntoView({
+            block: 'start',
+            behavior: 'smooth'
+          })
+        }
       }
       
       startSlideshow = () => {
@@ -39,12 +54,12 @@ class About extends Component {
   render() {
 
     const { slideshowIndex } = this.state;
+    const { scrollButtonRef } = this.props;
     return (
       <div style={{ background: "#121212", color: "#ffffff", paddingTop: "40px" }}>
+        
         <Container>
-
-            
-<Paper elevation={3}>
+        <Paper elevation={3}>
           <div className="slideshow">
             <img
               src={this.slideshowImages[slideshowIndex]}
@@ -52,7 +67,9 @@ class About extends Component {
             />
           </div>
         </Paper><br />
-          <Typography variant="h4" align="center" gutterBottom>
+
+        
+          <Typography variant="h4" align="center" sx={{marginTop: '20px'}} gutterBottom>
             About The Paradise Inn
           </Typography>
 
@@ -90,7 +107,25 @@ class About extends Component {
             </Grid>
           </Grid>
 
+
+          <Divider style={{ margin: "40px 0", backgroundColor: "#ffffff" }} ref={scrollButtonRef}/>
+
+
+          <Box textAlign="center" mb={2} >
+            <Typography variant="h5">Search your favourite!</Typography>
+            <Typography variant="body1" color="grey">
+              Belly rules the mind
+            </Typography>
+          </Box>
+  
+          <ErrorBoundary>
+            <Suspense fallback={<div>Loading... Please wait</div>}>
+              <SearchBar1 />
+            </Suspense>
+          </ErrorBoundary>
+
           <Divider style={{ margin: "40px 0", backgroundColor: "#ffffff" }} />
+
 
           <Box textAlign="center" mb={2}>
             <Typography variant="h5">Best Recommendations for You</Typography>
@@ -98,17 +133,25 @@ class About extends Component {
               Explore our menu and enjoy the Delight!
             </Typography>
           </Box>
-
-            <Recommendation />
           
+          <ErrorBoundary>
+            <Suspense fallback={<div>Please wait</div>}>
+              <Recommendation />
+            </Suspense>
+          </ErrorBoundary>                   
 
           <Divider style={{ margin: "40px 0", backgroundColor: "#ffffff" }} />
 
           <Typography variant="h5" align="center" mb={2}>
             Contact Us
           </Typography>
+          
           <Paper elevation={3} style={{ padding: "20px" }}>
-            <ContactUs />
+            <ErrorBoundary>
+              <Suspense fallback={<div>Loading... Please wait</div>}>
+                <ContactUs />
+              </Suspense>
+            </ErrorBoundary>
           </Paper>
         </Container>
       </div>

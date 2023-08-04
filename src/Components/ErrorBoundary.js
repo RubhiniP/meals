@@ -18,7 +18,7 @@ class ErrorBoundary extends Component {
     if (this.state.hasError) {
       return (
         <div>
-          <div style={{fontSize: '20px', fontVariant: 'all-petite-caps', textAlign: 'center', color: 'red'}}>Oops! Wrong search entry!</div>
+          <div style={{fontSize: '20px', fontVariant: 'all-petite-caps', textAlign: 'center', color: 'red'}}>Oops! Something went wrong!</div>
           <br />
         </div>
       );

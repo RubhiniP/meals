@@ -1,35 +1,49 @@
 import './App.css';
 import React, { Component } from 'react';
+import { Suspense } from 'react';
 import { Switch, Route, Link } from 'react-router-dom';
-import HomePage from './Components/Homepage';
-import SearchBar1 from './Components/SearchBar1';
-import Display from './Components/Display';
-import About from './Components/About';
+import Loading from './Components/Loading';
+// import Display from './Components/Display';
+// import About from './Components/About';
+// import Notfound from './Components/Notfound';
+
+const About = React.lazy(() => import("./Components/About"));
+const Display = React.lazy(() => import("./Components/Display"));
+const Notfound = React.lazy(() => import("./Components/Notfound"));
 
 class App extends Component {
+
+  constructor(props){
+    super(props);
+    this.scrollButtonRef = React.createRef();
+  }
+
+  scrollToSection = () => {
+    this.scrollButtonRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+  }
+
   render() {
     return (
       <div className="App">
-        <nav className="menu">
+        <nav className="menu" style={{ position: 'sticky', top: 0, margin: 0}}>
           <Link to="/" className="restaurant-name">THE PARADISE INN</Link>
           <ul>
             <li>
               <Link to="/" style={{ color: 'white', textDecoration: 'none', fontSize: '18px' }}>Home</Link>
             </li>
-            <li>
-              <Link to="/about" style={{ color: 'white', textDecoration: 'none', fontSize: '18px' }}>About</Link>
-            </li>
-            <li>
-              <Link to="/search" style={{ color: 'white', textDecoration: 'none', fontSize: '18px' }}>Search</Link>
-            </li>
+            <li onClick={this.scrollToSection} style={{ color: 'white', textDecoration: 'none', fontSize: '18px' }}>Search</li>
           </ul>
         </nav>
-        <Switch>
-          <Route exact path="/"><HomePage /></Route>
-          <Route exact path="/search"><SearchBar1 /></Route>
-          <Route exact path="/about"><About /></Route>
-          <Route exact path="/display/:id"><Display /></Route>
-        </Switch>
+        <Suspense fallback={<div><Loading /></div>}>
+          <Switch>
+            <Route exact path="/"><About scrollButtonRef={this.scrollButtonRef}/></Route>
+            <Route exact path="/display/:id"><Display /></Route>
+            <Route path='*' component={Notfound}></Route>
+          </Switch>
+        </Suspense>
 
         {/* Footer */}
         <footer className="footer" style={{backgroundColor: '#121212', color: 'white', padding:'10px', textAlign: 'center'}}>
